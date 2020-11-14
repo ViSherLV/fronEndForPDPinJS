@@ -6,16 +6,11 @@ function App() {
   return (
     <div className="App">
      <header>
-       <ButtonAppBar>
-
-       </ButtonAppBar>
+       <ButtonAppBar />
       </header>
-      <body>
-        <Body>
-
-          
-        </Body>
-      </body>
+      <div>
+        <Body />
+      </div>
     </div>
   );
 }

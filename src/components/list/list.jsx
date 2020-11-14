@@ -1,5 +1,6 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import {saveChoosenUsers} from '../../redux/actions'
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -8,6 +9,8 @@ import ListItemText from '@material-ui/core/ListItemText';
 import Checkbox from '@material-ui/core/Checkbox';
 import IconButton from '@material-ui/core/IconButton';
 import CommentIcon from '@material-ui/icons/Comment';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import { useDispatch, useSelector } from 'react-redux'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -23,13 +26,36 @@ const useStyles = makeStyles((theme) => ({
 
 export default function CheckboxList({data, checkedAll}) {
   const classes = useStyles();
-  const [checked, setChecked] = React.useState([0]);
-
+  
+  const [checked, setChecked] = React.useState([]);
+  const [checkedAllItems, setCheckedAll] = React.useState(checkedAll)
+  const loading = useSelector(state =>state.app.loading);
+  const dispatch = useDispatch()
+  const checkedUsers = []
+  useEffect(() => {
+    setCheckedAll(checkedAll)
+    if(checkedAll){
+    
+      data.forEach(function(item){
+        checkedUsers.push(item.chatId)
+      })
+      dispatch(saveChoosenUsers(checkedUsers))
+    }else{
+      dispatch(saveChoosenUsers([]))
+      setChecked([])
+    }
+  }, [checkedAll]);
+  
+  // useEffect(() => {
+  //   // Обновляем заголовок документа с помощью API браузера
+  //   setChecked(checkedUsers);
+  //   console.log(`checkedUsers`,checkedUsers)
+  // }, checkedAll);
   const handleToggle = (value) => () => {
+    setCheckedAll(false)
     const currentIndex = checked.indexOf(value);
     const newChecked = [...checked];
     console.log(`value`, value)
-    
     if (currentIndex === -1) {
       newChecked.push(value);
     } else {
@@ -37,26 +63,30 @@ export default function CheckboxList({data, checkedAll}) {
     }
     console.log(`newChecked`, newChecked)
     setChecked(newChecked);
+    dispatch(saveChoosenUsers(newChecked))
   };
 
   return (
+    loading?<div style={{paddingBottom:'1px'}}>
+      <CircularProgress  style={{width:'41%', height:'41%'}}/>
+      </div>:
     <List className={classes.root} >
-      {data&&data.length? data.map((value) => {
+      {data&&data.length? data.map((value, index) => {
         const labelId = `checkbox-list-label-${value.number}`;
 
         return (
-          <ListItem key={value.number} role={undefined} dense button onClick={handleToggle(value.number)}>
+          <ListItem key={index} role={undefined} dense button onClick={handleToggle(value.chatId)}>
             <ListItemIcon>
               <Checkbox
                 edge="start"
-                checked={checkedAll?true:checked.indexOf(value.number) !== -1}
+                checked={checkedAllItems?true:checked.indexOf(value.chatId) !== -1}
                 tabIndex={-1}
                 defaultChecked={true}
                 disableRipple
                 inputProps={{ 'aria-labelledby': labelId }}
               />
             </ListItemIcon>
-            <ListItemText id={labelId} primary={`Line item ${value.number}`} />
+            <ListItemText id={labelId} primary={`${value.name}: ${value.number}`} />
             <ListItemSecondaryAction>
               <IconButton edge="end" aria-label="comments">
                 <CommentIcon />
